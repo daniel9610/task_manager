@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\User;
+use App\Traits\RedirectHome;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
-
+    use RedirectHome;
     /**
      * Show the form for creating a new resource.
      */
@@ -53,9 +55,10 @@ class TaskController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request)
-    {
-        
+    public function edit($task_id)
+    {   
+        $task = Task::find($task_id);
+        return view('tasks.edit', compact('task'));
     }
 
     /**
@@ -74,14 +77,28 @@ class TaskController extends Controller
             return redirect()->back();
         }
         $task_id = $request->task_id;
-        $new_task = Task::find($task_id);
+        $new_task = Task::findOrFail($task_id);
         $new_task->title = $request->title;
         $new_task->description = $request->description;
         $new_task->priority = $request->priority;
         $new_task->done = $request->done;
         $new_task->deadline = $request->deadline;
-        $new_task->save(); 
-        return response()->json('Task updated successfuly');
+        $new_task->save();
+
+        $data = $this->redirectToHome($request);
+        $tasks = $data['tasks'];
+        $search = $data['search'];
+
+        if(auth()->user()->role == 'admin'){
+            $users = User::where('name', '!=', null)->paginate(5);
+            flash('Task updated successfully!')->success();
+            return redirect()->route('home')->with( ['tasks' => $tasks, 'search' => $search, 'users' => $users] );
+
+            // return view('home', compact('tasks', 'search', 'users'));
+        }
+        flash('Task updated successfully!')->success();
+        return redirect()->route('home')->with( ['tasks' => $tasks, 'search' => $search ] );
+        // return view('home', compact('tasks', 'search'));
     }
 
     /**

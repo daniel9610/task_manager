@@ -89,7 +89,7 @@
                                         @else
                                             <a class="btn btn-success" href="{{route('tasks.mark_as_done', ['task_id' => $task->id])}}">Mark as done</a><br>
                                         @endif
-                                        <a class="btn btn-warning" href="#">Edit</a><br>
+                                        <a class="btn btn-warning" href="{{route('tasks.edit', ['task_id' => $task->id])}}">Edit</a><br>
                                         <a class="btn btn-danger" href="{{route('tasks.delete', ['task_id' => $task->id])}}">Delete</a><br>
                                     </td>
                                 </tr>

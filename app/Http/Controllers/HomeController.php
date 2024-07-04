@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Task;
+use App\Models\User;
+use App\Traits\RedirectHome;
 
 class HomeController extends Controller
 {
+    use RedirectHome;
     /**
      * Create a new controller instance.
      *
@@ -24,18 +26,12 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        if($request->has('search')){
-            $search = $request->search;
-            $tasks = Task::where('user_id', auth()->id())
-            ->where('title', 'like', '%' . $request->search . '%')
-            ->orWhere('description', 'like', '%' . $request->search . '%')
-            ->orderBy('created_at', 'desc')
-            ->paginate(5);
-        }else{
-            $search = '';
-            $tasks = Task::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(5);
+        $data = $this->redirectToHome($request);
+        $tasks = $data['tasks'];
+        $search = $data['search'];
+        if(auth()->user()->role == 'admin'){
+            $users = User::where('name', '!=', null)->paginate(5);
+            return view('home', compact('tasks', 'search', 'users'));
         }
         return view('home', compact('tasks', 'search'));
     }
